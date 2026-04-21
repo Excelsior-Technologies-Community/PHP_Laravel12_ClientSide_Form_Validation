@@ -5,51 +5,53 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 
-/**
- * FormController
- * 
- * This controller handles:
- * - Showing the user creation form
- * - Storing user data after validation
- */
 class FormController extends Controller
 {
-    /**
-     * Show the user creation form
-     * 
-     * This method simply returns the Blade view
-     * where the form is displayed.
-     */
     public function create()
     {
         return view('createUser');
     }
 
-    /**
-     * Store the submitted form data
-     * 
-     * This method:
-     * 1. Validates the request data
-     * 2. Encrypts the password
-     * 3. Saves user data into the database
-     * 4. Redirects back with a success message
-     */
     public function store(Request $request)
     {
-        // Server-side validation for security
         $validatedData = $request->validate([
-            'name'     => 'required',              // Name field is required
-            'email'    => 'required|email|unique:users', // Email must be valid and unique
-            'password' => 'required|min:5',         // Password must be at least 5 characters
+            'name' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:5',
         ]);
 
-        // Encrypt the password before saving
         $validatedData['password'] = bcrypt($validatedData['password']);
 
-        // Store user data into the users table
         User::create($validatedData);
 
-        // Redirect back to form with success message
-        return back()->with('success', 'User successfully created!');
+        // AJAX RESPONSE
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => 'User created successfully!'
+            ]);
+        }
+
+        return back()->with('success', 'User created!');
     }
+    public function delete($id)
+    {
+        User::findOrFail($id)->delete();
+        return back()->with('success', 'User deleted');
+    }
+    // ⭐ NEW FEATURE: USER LIST
+    public function list(Request $request)
+    {
+        $query = User::query();
+
+        if ($request->search) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                ->orWhere('email', 'like', '%' . $request->search . '%');
+        }
+
+        $users = $query->get();
+
+        return view('usersList', compact('users'));
+    }
+
+
 }
