@@ -24,7 +24,6 @@ class FormController extends Controller
 
         User::create($validatedData);
 
-        // AJAX RESPONSE
         if ($request->ajax()) {
             return response()->json([
                 'success' => 'User created successfully!'
@@ -33,12 +32,38 @@ class FormController extends Controller
 
         return back()->with('success', 'User created!');
     }
+
+    public function checkEmail(Request $request)
+    {
+        $exists = User::where('email', $request->email)->exists();
+        return response()->json(!$exists);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email,' . $id,
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        return response()->json([
+            'success' => 'User updated successfully!'
+        ]);
+    }
+
     public function delete($id)
     {
         User::findOrFail($id)->delete();
         return back()->with('success', 'User deleted');
     }
-    // ⭐ NEW FEATURE: USER LIST
+
     public function list(Request $request)
     {
         $query = User::query();
@@ -52,6 +77,4 @@ class FormController extends Controller
 
         return view('usersList', compact('users'));
     }
-
-
 }
