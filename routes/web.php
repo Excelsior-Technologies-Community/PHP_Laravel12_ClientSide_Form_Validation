@@ -15,4 +15,4 @@ Route::delete('users/{id}', [FormController::class, 'delete'])->name('users.dele
 
 Route::get('users/check-email', [FormController::class, 'checkEmail'])->name('users.checkEmail');
 
-Route::post('users/update/{id}', [FormController::class, 'update'])->name('users.update');
+Route::post('users/update/{id}', [FormController::class, 'update'])->name('users.update'); 
